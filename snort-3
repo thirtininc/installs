@@ -1,0 +1,82 @@
+#!/bin/bash
+
+# Exit immediately if a command exits with a non-zero status.
+set -e
+
+# --- Variables for the software versions ---
+# You can update these variables in the future to install newer versions.
+DAQ_VERSION="3.0.13"
+SNORT_VERSION="3.1.81.0"
+
+
+echo ">>> [Step 1/4] Installing all required dependencies..."
+
+# Update package lists
+sudo apt-get update
+
+# Install all the dependencies we discovered during our troubleshooting
+sudo apt-get install -y \
+    build-essential \
+    cmake \
+    flex \
+    bison \
+    libpcap-dev \
+    libdumbnet-dev \
+    libhwloc-dev \
+    libluajit-5.1-dev \
+    libssl-dev \
+    libpcre3-dev \
+    zlib1g-dev \
+    liblzma-dev \
+    wget
+
+echo ">>> Dependencies installed successfully."
+
+
+echo ">>> [Step 2/4] Downloading and installing libdaq ${DAQ_VERSION}..."
+
+# Navigate to the home directory
+cd ~
+
+# Download and extract libdaq
+wget https://github.com/snort3/libdaq/archive/refs/tags/v${DAQ_VERSION}.tar.gz
+tar -xzvf v${DAQ_VERSION}.tar.gz
+cd libdaq-${DAQ_VERSION}
+
+# Run the correct build process for libdaq
+./bootstrap
+./configure
+make
+sudo make install
+
+echo ">>> libdaq installed successfully."
+
+
+echo ">>> [Step 3/4] Downloading and installing Snort ${SNORT_VERSION}..."
+
+# Navigate back to the home directory
+cd ~
+
+# Download and extract Snort 3
+wget https://github.com/snort3/snort3/archive/refs/tags/${SNORT_VERSION}.tar.gz
+tar -xzvf ${SNORT_VERSION}.tar.gz
+cd snort3-${SNORT_VERSION}
+
+# Run the correct cmake build process for Snort 3
+mkdir build
+cd build
+cmake ..
+make
+sudo make install
+
+echo ">>> Snort 3 installed successfully."
+
+
+echo ">>> [Step 4/4] Updating shared library cache..."
+
+# Update the system's library cache to find the new libraries
+sudo ldconfig
+
+echo "=========================================================="
+echo " SUCCESS! Snort 3 and all dependencies are installed."
+echo "=========================================================="
